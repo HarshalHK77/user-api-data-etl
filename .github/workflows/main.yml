@@ -1,0 +1,28 @@
+name: Run PySpark Notebook
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'  # Runs every 5 minutes
+  workflow_dispatch:       # Allows manual trigger from GitHub UI
+
+jobs:
+  run-pyspark-notebook:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          pip install pyspark
+          pip install papermill
+
+      - name: Run PySpark notebook
+        run: |
+          papermill ETL Project.ipynb ETL Project output.ipynb
