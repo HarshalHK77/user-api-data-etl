@@ -2,7 +2,7 @@ name: Updated ETL Workflow
 
 on:
   schedule:
-    - cron: '0 * * * *'  # This will run the workflow every hour at the top of the hour
+    - cron: '*/5 * * * *'  # This will run the workflow every hour at the top of the hour
   push:
     branches:
       - main  # This will run the workflow on push to the main branch
