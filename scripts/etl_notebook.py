@@ -7,6 +7,9 @@ from pyspark.sql.functions import col, explode
 
 import requests
 import json
+import boto3
+import os
+from datetime import datetime
 
 # Initialize Spark session
 spark = SparkSession.builder.appName("Fetch and Flatten JSON").getOrCreate()
@@ -111,34 +114,13 @@ df = df.withColumn("age_group", when(col("dob_age") < 18, "Minor")
 df = df.repartition("country")
 
 # Generate filename
-from datetime import datetime
 filename = f"random_users_{datetime.now().strftime('%d_%m_%Y_%H_%M_%S')}.csv"
 
-# Local temporary path
-local_output_path = "./csv"
-
-# Write DataFrame to local path
-df.coalesce(1) \
-    .write \
-    .format("csv") \
-    .option("header", "true") \
-    .mode("overwrite") \
-    .save(local_output_path)
-
-# Find and rename the part file locally
-import os
-for file in os.listdir(local_output_path):
-    if file.startswith("part-"):
-        os.rename(os.path.join(local_output_path, file), os.path.join(local_output_path, filename))
-        break
-
-# Upload the renamed CSV file to S3
-import boto3
-
+# Write DataFrame to S3 path
+s3_output_path = f"s3a://user-api-data-databricks/csv/{filename}"
 s3 = boto3.client('s3',
-                  aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
-                  aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'))
+                  aws_access_key_id='AKIAUMYCIDRWZMGEJ4XL',
+                  aws_secret_access_key='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')
 
-s3.upload_file(os.path.join(local_output_path, filename), "user-api-data-databricks", f"csv/{filename}")
-
+s3.upload_file(filename)
 print("Single CSV file written to S3 successfully!")
